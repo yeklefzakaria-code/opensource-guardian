@@ -40,7 +40,7 @@ Set `OPENAI_API_KEY` to enable AI review. `OPENAI_MODEL` defaults to `gpt-5-mini
 
 The included `.github/workflows/review-pr.yml` runs on pull requests and uses the repository's `GITHUB_TOKEN` to read the PR diff and post a comment. Add an Actions secret named `OPENAI_API_KEY` to enable AI findings; without it, deterministic checks still run.
 
-For the workflow to post comments, enable **Settings → Actions → General → Workflow permissions → Read and write permissions**. The workflow limits write permission to pull-request comments and does not push code.
+For the workflow to post comments, enable **Settings → Actions → General → Workflow permissions → Read and write permissions**. The workflow checks out trusted base-branch code (not code from the PR), limits its token to pull-request comments, and does not push code. The hosted workflow runs deterministic checks only; configure the API key for local/API AI reviews.
 
 ## API
 
