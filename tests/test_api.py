@@ -47,3 +47,26 @@ def test_sarif_endpoint_returns_sarif_media_type():
     report = response.json()
     assert report["version"] == "2.1.0"
     assert report["runs"][0]["results"][0]["ruleId"] == "OG002"
+
+
+def test_repository_scan_finds_issues_with_file_and_line():
+    response = client.post(
+        "/v1/scan",
+        json={"files": {"src/client.py": "import requests\nrequests.get(url, verify=False)"}},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ai_reviewed"] is False
+    assert payload["findings"][0]["rule_id"] == "OG002"
+    assert payload["findings"][0]["file_path"] == "src/client.py"
+    assert payload["findings"][0]["line"] == 2
+
+
+def test_repository_scan_rejects_unsafe_paths():
+    response = client.post("/v1/scan", json={"files": {"../outside.py": "eval(user_input)"}})
+    assert response.status_code == 422
+
+
+def test_repository_scan_enforces_total_source_limit():
+    response = client.post("/v1/scan", json={"files": {"large.py": "x" * 500_001}})
+    assert response.status_code == 422
