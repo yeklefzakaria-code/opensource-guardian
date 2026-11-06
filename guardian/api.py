@@ -4,8 +4,8 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from guardian.config import settings
 from guardian.reviewer import ai_review
 from guardian.rules import analyze_diff
-from guardian.schemas import ReviewRequest, ReviewResponse
 from guardian.sarif import to_sarif
+from guardian.schemas import ReviewRequest, ReviewResponse
 
 app = FastAPI(
     title="OpenSource Guardian",
