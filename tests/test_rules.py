@@ -39,3 +39,15 @@ def test_detects_multiple_risky_patterns():
 """
     findings = analyze_diff(diff)
     assert {item.rule_id for item in findings} == {"OG002", "OG003"}
+
+
+def test_detects_dynamic_eval_and_insecure_random():
+    diff = """diff --git a/auth.py b/auth.py
+--- a/auth.py
++++ b/auth.py
+@@ -0,0 +1,2 @@
++eval(user_input)
++token = random.random()
+"""
+    findings = analyze_diff(diff)
+    assert {item.rule_id for item in findings} == {"OG005", "OG006"}
