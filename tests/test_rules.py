@@ -51,3 +51,31 @@ def test_detects_dynamic_eval_and_insecure_random():
 """
     findings = analyze_diff(diff)
     assert {item.rule_id for item in findings} == {"OG005", "OG006"}
+
+
+def test_detects_world_writable_file_permissions():
+    diff = """diff --git a/deploy.py b/deploy.py
+--- a/deploy.py
++++ b/deploy.py
+@@ -0,0 +1 @@
++os.chmod(path, 0o777)
+"""
+    findings = analyze_diff(diff)
+    assert len(findings) == 1
+    assert findings[0].rule_id == "OG004"
+    assert findings[0].severity == "medium"
+
+
+def test_tracks_added_line_numbers_after_context():
+    diff = """diff --git a/app.py b/app.py
+--- a/app.py
++++ b/app.py
+@@ -10,2 +10,3 @@
+ existing_call()
++requests.get(url, verify=False)
+ another_call()
+"""
+    findings = analyze_diff(diff)
+    assert len(findings) == 1
+    assert findings[0].file_path == "app.py"
+    assert findings[0].line == 11
