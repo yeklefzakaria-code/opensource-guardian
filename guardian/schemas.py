@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal  # noqa: I001
 
 from pydantic import BaseModel, Field
 
