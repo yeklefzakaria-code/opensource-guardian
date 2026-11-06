@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from guardian.config import settings
 from guardian.reviewer import ai_review
@@ -8,13 +10,19 @@ from guardian.schemas import ReviewRequest, ReviewResponse
 app = FastAPI(
     title="OpenSource Guardian",
     description="AI-assisted code review for open-source maintainers.",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
 @app.get("/health")
 def health() -> dict[str, object]:
     return {"status": "ok", "ai_enabled": bool(settings.openai_api_key)}
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def dashboard() -> HTMLResponse:
+    with open("guardian/dashboard.html", encoding="utf-8") as page:
+        return HTMLResponse(page.read())
 
 
 @app.post("/v1/review", response_model=ReviewResponse)
@@ -29,7 +37,6 @@ def review(request: ReviewRequest) -> ReviewResponse:
         except Exception as exc:
             raise HTTPException(status_code=502, detail="AI review provider failed") from exc
 
-    # Stable ordering makes API responses and tests predictable.
     order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
     findings.sort(key=lambda item: (order[item.severity], item.file_path or "", item.line or 0))
 
