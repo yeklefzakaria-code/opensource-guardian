@@ -14,7 +14,10 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
+      # Run trusted base-branch code, never scripts supplied by the pull request.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
