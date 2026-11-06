@@ -12,7 +12,7 @@ from guardian.schemas import ReviewRequest, ReviewResponse
 app = FastAPI(
     title="OpenSource Guardian",
     description="AI-assisted code review for open-source maintainers.",
-    version="0.2.0",
+    version="0.3.0",
 )
 
 
