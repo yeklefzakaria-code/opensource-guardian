@@ -38,7 +38,7 @@ def test_sarif_endpoint_returns_sarif_media_type():
     response = client.post(
         "/v1/review/sarif",
         json={
-            "diff": "+++ b/client.py\\n@@ -0,0 +1 @@\\n+requests.get(url, verify=False)",
+            "diff": "+++ b/client.py\n@@ -0,0 +1 @@\n+requests.get(url, verify=False)",
             "use_ai": False,
         },
     )
