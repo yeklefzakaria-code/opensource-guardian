@@ -21,9 +21,10 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install pip-audit
-        run: python -m pip install --upgrade pip pip-audit
+        run: python -m pip install --upgrade pip pip-audit pip-tools
       - name: Audit declared dependencies against the Python Advisory Database
-        run: pip-audit --requirement requirements-audit.txt --format json --output pip-audit-report.json
+        run: pip-compile --quiet --output-file /tmp/requirements-audit.lock requirements-audit.txt
+          pip-audit --requirement /tmp/requirements-audit.lock --format json --output pip-audit-report.json
       - name: Upload machine-readable audit report
         if: always() && hashFiles('pip-audit-report.json') != ''
         uses: actions/upload-artifact@v4
