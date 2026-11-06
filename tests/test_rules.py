@@ -79,3 +79,29 @@ def test_tracks_added_line_numbers_after_context():
     assert len(findings) == 1
     assert findings[0].file_path == "app.py"
     assert findings[0].line == 11
+
+
+def test_detects_unsafe_deserialization():
+    diff = """diff --git a/cache.py b/cache.py
+--- a/cache.py
++++ b/cache.py
+@@ -0,0 +1 @@
++payload = pickle.loads(user_supplied_bytes)
+"""
+    findings = analyze_diff(diff)
+    assert len(findings) == 1
+    assert findings[0].rule_id == "OG007"
+    assert findings[0].severity == "high"
+
+
+def test_detects_weak_hash_without_overstating_severity():
+    diff = """diff --git a/checksum.py b/checksum.py
+--- a/checksum.py
++++ b/checksum.py
+@@ -0,0 +1 @@
++digest = hashlib.md5(data)
+"""
+    findings = analyze_diff(diff)
+    assert len(findings) == 1
+    assert findings[0].rule_id == "OG008"
+    assert findings[0].severity == "low"
