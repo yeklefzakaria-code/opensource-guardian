@@ -4,6 +4,8 @@ import os
 import sys
 from urllib.request import Request, urlopen
 
+from openai import APIError
+
 from guardian.config import settings
 from guardian.reviewer import ai_review
 from guardian.rules import analyze_diff
@@ -79,6 +81,6 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except Exception as exc:
+    except (OSError, ValueError, KeyError, APIError) as exc:
         print(f"Review failed: {exc}", file=sys.stderr)
         raise SystemExit(1)
