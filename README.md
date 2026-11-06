@@ -1,16 +1,16 @@
 # OpenSource Guardian
 
-**AI-assisted code review for open-source maintainers.** OpenSource Guardian combines deterministic checks with an optional OpenAI-powered review API. It is designed to run locally or in GitHub Actions.
+**AI-assisted security review for open-source maintainers.** OpenSource Guardian combines deterministic checks with optional OpenAI-powered analysis and GitHub Actions integration.
 
-> Status: early MVP. Reviews are advisory; always validate findings before merging.
+> **MVP status:** Reviews are advisory, not a proof that code is safe. Validate every finding before acting on it.
 
-## Features
+## What it does
 
-- Review unified Git diffs through a small HTTP API.
-- Detect high-signal risky patterns locally (hard-coded credentials, disabled TLS verification, dangerous shell execution, and suspicious permission changes).
-- Optional OpenAI review with structured JSON output.
-- GitHub Actions workflow for pull requests (posts a review summary as a PR comment).
-- No repository write permissions are required by the review workflow.
+- Analyze unified Git diffs through a REST API and browser dashboard.
+- Detect likely hard-coded secrets, disabled TLS verification, risky shell execution, permissive file modes, dynamic evaluation, and insecure random-number generation.
+- Optionally add an OpenAI review when `OPENAI_API_KEY` is configured.
+- Export findings as **SARIF 2.1.0** for security tooling.
+- Review pull requests in GitHub Actions without checking out or executing pull-request code.
 
 ## Quick start
 
@@ -18,59 +18,84 @@ Requires Python 3.11+.
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -e ".[dev]"
-cp .env.example .env
 uvicorn guardian.api:app --reload
 ```
 
-Open `http://127.0.0.1:8000` for the interactive dashboard, or `http://127.0.0.1:8000/docs` for the API explorer.
-
-### Review a diff
-
-```bash
-curl -X POST http://127.0.0.1:8000/v1/review \
-  -H "Content-Type: application/json" \
-  -d '{"diff":"diff --git a/app.py b/app.py\n+password = \"secret123\"\n","use_ai":false}'
-```
-
-Set `OPENAI_API_KEY` to enable AI review. `OPENAI_MODEL` defaults to `gpt-5-mini`. The API never requires an API key for local deterministic checks.
-
-## GitHub Actions setup
-
-The included `.github/workflows/review-pr.yml` runs on pull requests and uses the repository's `GITHUB_TOKEN` to read the PR diff and post a comment. Add an Actions secret named `OPENAI_API_KEY` to enable AI findings; without it, deterministic checks still run.
-
-For the workflow to post comments, enable **Settings → Actions → General → Workflow permissions → Read and write permissions**. The workflow checks out trusted base-branch code (not code from the PR), limits its token to pull-request comments, and does not push code. The hosted workflow runs deterministic checks only; configure the API key for local/API AI reviews.
+Open `http://127.0.0.1:8000` for the dashboard or `http://127.0.0.1:8000/docs` for the interactive API documentation.
 
 ## API
 
-- `GET /` — interactive browser dashboard.\n- `GET /health` — health status and AI availability.
-- `POST /v1/review` — request body: `{"diff": "...", "use_ai": true}`.
+### `GET /health`
 
-The response contains a summary, findings, and whether AI review was used. Finding severity is `critical`, `high`, `medium`, or `low`.
+Returns service health and whether an OpenAI key is configured.
 
-## Security and responsible use
+### `POST /v1/review`
 
-- Never commit API keys or tokens. Use environment variables / GitHub Actions secrets.
-- Treat pull-request diffs as untrusted input. The model is instructed to analyze code, not follow instructions embedded in it.
-- Reviews are not a substitute for tests, static analysis, dependency scanning, or human review.
-- Avoid sending private or regulated code to third-party APIs unless authorized.
+Request:
+
+```json
+{
+  "diff": "+++ b/app.py\n@@ -0,0 +1 @@\n+requests.get(url, verify=False)",
+  "use_ai": false
+}
+```
+
+Returns a summary, structured findings, and an `ai_reviewed` flag.
+
+### `POST /v1/review/sarif`
+
+Accepts the same request and returns a SARIF 2.1.0 document with the `application/sarif+json` media type.
+
+## Optional AI review
+
+Set `OPENAI_API_KEY` in the environment to enable AI review. `OPENAI_MODEL` defaults to `gpt-5-mini`. Deterministic checks work without an API key.
+
+Do not send private, regulated, or otherwise sensitive source code to a third-party model unless you are authorized to do so.
+
+## GitHub Actions
+
+The repository includes:
+- **CI** — Ruff linting and pytest.
+- **OpenSource Guardian PR Review** — analyzes the PR diff using trusted base-branch code. It does not execute code supplied by the pull request.
+
+The PR review workflow uses the GitHub token to read the diff and, for same-repository pull requests, publish a summary comment. Fork pull requests are handled without posting a comment. Add an Actions secret named `OPENAI_API_KEY` only if you want AI review in the workflow; GitHub does not expose repository secrets to workflows triggered by fork pull requests.
+
+## Detection rules
+
+| Rule | Description | Default severity |
+| --- | --- | --- |
+| OG001 | Possible hard-coded secret | Critical |
+| OG002 | TLS certificate verification disabled | High |
+| OG003 | Potentially dangerous shell execution | High |
+| OG004 | Overly permissive file mode | Medium |
+| OG005 | Dynamic code evaluation | High |
+| OG006 | Potentially insecure random number generation | Medium |
+
+These are pattern-based heuristics. They can produce false positives and will not detect every vulnerability.
 
 ## Development
 
 ```bash
 pip install -e ".[dev]"
-pytest
 ruff check .
+pytest
 ```
+
+## Security and responsible use
+
+- Never commit API keys, tokens, or credentials.
+- Treat pull-request diffs as untrusted input.
+- Use least-privilege GitHub Actions permissions.
+- Review findings manually; this tool is not a replacement for tests, dependency auditing, static analysis, or expert review.
 
 ## Roadmap
 
-- [ ] Inline annotations with precise changed-line positions.
-- [ ] Repository-level configuration and ignore rules.
-- [ ] SARIF export for security findings.
-- [ ] Multi-language rule packs and baseline suppression.
-- [ ] Maintainer dashboard and review history.
+- Repository-level configuration and ignore rules.
+- Inline annotations on changed lines.
+- Multi-language rule packs and baseline suppression.
+- Maintainer dashboard with review history.
 
 ## License
 
