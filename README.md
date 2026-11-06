@@ -7,9 +7,10 @@
 ## What it does
 
 - Analyze unified Git diffs through a REST API and browser dashboard.
-- Detect likely hard-coded secrets, disabled TLS verification, risky shell execution, permissive file modes, dynamic evaluation, and insecure random-number generation.
-- Optionally add an OpenAI review when `OPENAI_API_KEY` is configured.
-- Export findings as **SARIF 2.1.0** for security tooling.
+- Scan batches of source files through a repository-scan API, returning file paths and 1-based line numbers.
+- Detect likely hard-coded secrets, disabled TLS verification, risky shell execution, permissive file modes, dynamic evaluation, insecure random-number generation, unsafe deserialization, and weak hashes.
+- Optionally add an OpenAI review when `OPENAI_API_KEY` is configured for diff reviews.
+- Export diff-review findings as **SARIF 2.1.0** for security tooling.
 - Review pull requests in GitHub Actions without checking out or executing pull-request code.
 - Audit declared Python runtime dependencies against the Python Packaging Advisory Database with scheduled and on-demand GitHub Actions runs.
 
@@ -34,11 +35,11 @@ Returns service health and whether an OpenAI key is configured.
 
 ### `POST /v1/review`
 
-Request:
+Analyze a unified Git diff. Request:
 
 ```json
 {
-  "diff": "+++ b/app.py\n@@ -0,0 +1 @@\n+requests.get(url, verify=False)",
+  "diff": "+++ b/app.py\\n@@ -0,0 +1 @@\\n+requests.get(url, verify=False)",
   "use_ai": false
 }
 ```
@@ -48,6 +49,21 @@ Returns a summary, structured findings, and an `ai_reviewed` flag.
 ### `POST /v1/review/sarif`
 
 Accepts the same request and returns a SARIF 2.1.0 document with the `application/sarif+json` media type.
+
+### `POST /v1/scan`
+
+Scan source files directly without constructing a Git diff. Example:
+
+```json
+{
+  "files": {
+    "src/client.py": "import requests\\nrequests.get(url, verify=False)",
+    "src/auth.py": "token = random.random()"
+  }
+}
+```
+
+The response uses the same finding schema as diff review, including file paths and 1-based line numbers. Requests are limited to 100 files and 500,000 combined source characters; file paths must be relative and normalized. This endpoint runs deterministic rules only and does not transmit source code to an AI provider.
 
 ## Optional AI review
 
@@ -98,7 +114,6 @@ pytest
 
 ## Roadmap
 
-- Repository-wide source scanning beyond pull-request diffs.
 - Inline annotations on changed lines.
 - Multi-language rule packs and baseline suppression.
 - Maintainer dashboard with review history.
