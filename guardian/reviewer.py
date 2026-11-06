@@ -25,7 +25,6 @@ def ai_review(diff: str) -> list[Finding]:
     client = OpenAI(api_key=settings.openai_api_key)
     response = client.chat.completions.create(
         model=settings.openai_model,
-        temperature=0,
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
