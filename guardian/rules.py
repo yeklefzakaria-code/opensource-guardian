@@ -47,6 +47,20 @@ RULES: list[tuple[str, str, str, str, re.Pattern[str]]] = [
         "medium",
         re.compile(r"(?i)\brandom\.random\s*\("),
     ),
+    (
+        "OG007",
+        "Potentially unsafe deserialization",
+        "Deserializing untrusted data with pickle or marshal can execute attacker-controlled code. Use a safe, schema-validated format for untrusted input.",
+        "high",
+        re.compile(r"(?i)\b(pickle|marshal)\.loads?\s*\("),
+    ),
+    (
+        "OG008",
+        "Weak cryptographic hash",
+        "MD5 and SHA-1 are unsuitable for collision-resistant security uses. Prefer SHA-256 or a modern password-hashing scheme where appropriate.",
+        "low",
+        re.compile(r"(?i)\bhashlib\.(md5|sha1)\s*\("),
+    ),
 ]
 
 _DIFF_HEADER = re.compile(r"^\+\+\+ b/(.+)$")
