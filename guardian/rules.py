@@ -66,8 +66,7 @@ def analyze_diff(diff: str) -> list[Finding]:
                         )
                     )
             new_line += 1
-        elif not raw_line.startswith("-") and not raw_line.startswith("\\"):
-            if raw_line.startswith(" "):
-                new_line += 1
+        elif raw_line.startswith(" "):
+            new_line += 1
 
     return findings
