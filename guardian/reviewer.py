@@ -3,6 +3,7 @@
 import json
 
 from openai import OpenAI
+from pydantic import ValidationError
 
 from guardian.config import settings
 from guardian.schemas import Finding
@@ -38,7 +39,7 @@ def ai_review(diff: str) -> list[Finding]:
         try:
             item["source"] = "openai"
             findings.append(Finding.model_validate(item))
-        except Exception:
+        except ValidationError:
             # Ignore malformed model output rather than failing the whole review.
             continue
     return findings
