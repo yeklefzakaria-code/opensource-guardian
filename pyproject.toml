@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opensource-guardian"
-version = "0.2.0"
-description = "AI-assisted code review for open-source maintainers"
+version = "0.3.0"
+description = "Explainable security checks and AI-assisted code review for open-source maintainers"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
