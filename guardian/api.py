@@ -7,7 +7,8 @@ from guardian.config import settings
 from guardian.reviewer import ai_review
 from guardian.rules import analyze_diff
 from guardian.sarif import to_sarif
-from guardian.schemas import ReviewRequest, ReviewResponse
+from guardian.scanner import analyze_sources
+from guardian.schemas import ReviewRequest, ReviewResponse, ScanRequest
 
 app = FastAPI(
     title="OpenSource Guardian",
@@ -59,3 +60,15 @@ def review_sarif(request: ReviewRequest) -> JSONResponse:
         except Exception as exc:
             raise HTTPException(status_code=502, detail="AI review provider failed") from exc
     return JSONResponse(content=to_sarif(findings), media_type="application/sarif+json")
+
+
+@app.post("/v1/scan", response_model=ReviewResponse)
+def scan_sources(request: ScanRequest) -> ReviewResponse:
+    findings = analyze_sources(request.files)
+    order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    findings.sort(key=lambda item: (order[item.severity], item.file_path or "", item.line or 0))
+    if not findings:
+        summary = "No actionable findings detected. This is not a guarantee that the source is safe."
+    else:
+        summary = f"Found {len(findings)} potential issue(s) across {len(request.files)} file(s)."
+    return ReviewResponse(summary=summary, findings=findings, ai_reviewed=False)
