@@ -1,5 +1,5 @@
-from pathlib import PurePosixPath
 from typing import Literal
+from pathlib import PurePosixPath
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
