@@ -38,14 +38,14 @@ RULES: list[tuple[str, str, str, str, re.Pattern[str]]] = [
         "Dynamic code evaluation",
         "Evaluating dynamically constructed code can enable code injection. Avoid eval/exec on untrusted input.",
         "high",
-        re.compile(r"(?i)\\b(eval|exec)\\s*\\("),
+        re.compile(r"(?i)\b(eval|exec)\s*\("),
     ),
     (
         "OG006",
         "Potentially insecure random number generation",
         "random.random() is not suitable for security-sensitive tokens or secrets. Use a cryptographically secure generator.",
         "medium",
-        re.compile(r"(?i)\\brandom\\.random\\s*\\("),
+        re.compile(r"(?i)\brandom\.random\s*\("),
     ),
 ]
 
