@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException
+from pathlib import Path
+
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from guardian.config import settings
@@ -21,8 +23,8 @@ def health() -> dict[str, object]:
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def dashboard() -> HTMLResponse:
-    with open("guardian/dashboard.html", encoding="utf-8") as page:
-        return HTMLResponse(page.read())
+    page_path = Path(__file__).with_name("dashboard.html")
+    return HTMLResponse(page_path.read_text(encoding="utf-8"))
 
 
 @app.post("/v1/review", response_model=ReviewResponse)
