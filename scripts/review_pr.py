@@ -68,7 +68,10 @@ def main() -> int:
     import json
 
     body = json.dumps({"body": "\n".join(lines)}).encode("utf-8")
-    github_api(f"/repos/{repository}/issues/{number}/comments", token, "POST", body)
+    if os.environ.get("CAN_COMMENT", "false").lower() == "true":
+        github_api(f"/repos/{repository}/issues/{number}/comments", token, "POST", body)
+    else:
+        print("Fork pull request: review output is logged; no write token is used.")
     print("\n".join(lines))
     return 0
 
