@@ -24,7 +24,7 @@ cp .env.example .env
 uvicorn guardian.api:app --reload
 ```
 
-Open `http://127.0.0.1:8000/docs`.
+Open `http://127.0.0.1:8000` for the interactive dashboard, or `http://127.0.0.1:8000/docs` for the API explorer.
 
 ### Review a diff
 
@@ -44,7 +44,7 @@ For the workflow to post comments, enable **Settings → Actions → General →
 
 ## API
 
-- `GET /health` — health status and AI availability.
+- `GET /` — interactive browser dashboard.\n- `GET /health` — health status and AI availability.
 - `POST /v1/review` — request body: `{"diff": "...", "use_ai": true}`.
 
 The response contains a summary, findings, and whether AI review was used. Finding severity is `critical`, `high`, `medium`, or `low`.
