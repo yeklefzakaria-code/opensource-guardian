@@ -1,10 +1,11 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from guardian.config import settings
 from guardian.reviewer import ai_review
 from guardian.rules import analyze_diff
 from guardian.schemas import ReviewRequest, ReviewResponse
+from guardian.sarif import to_sarif
 
 app = FastAPI(
     title="OpenSource Guardian",
@@ -45,3 +46,14 @@ def review(request: ReviewRequest) -> ReviewResponse:
         summary = f"Found {len(findings)} potential issue(s). Please validate each finding before merging."
 
     return ReviewResponse(summary=summary, findings=findings, ai_reviewed=ai_reviewed)
+
+
+@app.post("/v1/review/sarif")
+def review_sarif(request: ReviewRequest) -> JSONResponse:
+    findings = analyze_diff(request.diff)
+    if request.use_ai and settings.openai_api_key:
+        try:
+            findings.extend(ai_review(request.diff))
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail="AI review provider failed") from exc
+    return JSONResponse(content=to_sarif(findings), media_type="application/sarif+json")
