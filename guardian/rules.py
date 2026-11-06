@@ -33,6 +33,20 @@ RULES: list[tuple[str, str, str, str, re.Pattern[str]]] = [
         "medium",
         re.compile(r"(?i)(chmod\s+777|0o777|mode\s*=\s*0?777)"),
     ),
+    (
+        "OG005",
+        "Dynamic code evaluation",
+        "Evaluating dynamically constructed code can enable code injection. Avoid eval/exec on untrusted input.",
+        "high",
+        re.compile(r"(?i)\\b(eval|exec)\\s*\\("),
+    ),
+    (
+        "OG006",
+        "Potentially insecure random number generation",
+        "random.random() is not suitable for security-sensitive tokens or secrets. Use a cryptographically secure generator.",
+        "medium",
+        re.compile(r"(?i)\\brandom\\.random\\s*\\("),
+    ),
 ]
 
 _DIFF_HEADER = re.compile(r"^\+\+\+ b/(.+)$")
