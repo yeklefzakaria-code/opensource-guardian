@@ -72,6 +72,8 @@ The PR review workflow uses the GitHub token to read the diff and, for same-repo
 | OG004 | Overly permissive file mode | Medium |
 | OG005 | Dynamic code evaluation | High |
 | OG006 | Potentially insecure random number generation | Medium |
+| OG007 | Potentially unsafe pickle/marshal deserialization | High |
+| OG008 | Weak MD5/SHA-1 cryptographic hash | Low |
 
 These are pattern-based heuristics. They can produce false positives and will not detect every vulnerability.
 
