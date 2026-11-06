@@ -11,6 +11,7 @@
 - Optionally add an OpenAI review when `OPENAI_API_KEY` is configured.
 - Export findings as **SARIF 2.1.0** for security tooling.
 - Review pull requests in GitHub Actions without checking out or executing pull-request code.
+- Audit declared Python runtime dependencies against the Python Packaging Advisory Database with scheduled and on-demand GitHub Actions runs.
 
 ## Quick start
 
@@ -58,6 +59,7 @@ Do not send private, regulated, or otherwise sensitive source code to a third-pa
 
 The repository includes:
 - **CI** — Ruff linting and pytest.
+- **Dependency Security Audit** — runs `pip-audit` against `requirements-audit.txt` on pushes, pull requests, weekly, and on manual dispatch. It resolves transitive dependencies and checks known advisories from the Python Packaging Advisory Database; the JSON report is retained as a workflow artifact for 14 days. Keep `requirements-audit.txt` in sync with runtime dependencies in `pyproject.toml`.
 - **OpenSource Guardian PR Review** — analyzes the PR diff using trusted base-branch code. It does not execute code supplied by the pull request.
 
 The PR review workflow uses the GitHub token to read the diff and, for same-repository pull requests, publish a summary comment. Fork pull requests are handled without posting a comment. Add an Actions secret named `OPENAI_API_KEY` only if you want AI review in the workflow; GitHub does not expose repository secrets to workflows triggered by fork pull requests.
@@ -77,6 +79,8 @@ The PR review workflow uses the GitHub token to read the diff and, for same-repo
 
 These are pattern-based heuristics. They can produce false positives and will not detect every vulnerability.
 
+Dependency auditing is a separate, network-backed workflow. It reports advisories known to the upstream database at scan time; it is not a guarantee that every dependency or vulnerability is covered. The audit manifest lists direct runtime dependencies, while `pip-audit` resolves their transitive dependencies.
+
 ## Development
 
 ```bash
@@ -94,7 +98,7 @@ pytest
 
 ## Roadmap
 
-- Repository-level configuration and ignore rules.
+- Repository-wide source scanning beyond pull-request diffs.
 - Inline annotations on changed lines.
 - Multi-language rule packs and baseline suppression.
 - Maintainer dashboard with review history.
